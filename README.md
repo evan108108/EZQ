@@ -1,7 +1,7 @@
 EZQ
 ===
 
-Simple Process Queue With Forked Workers
+Simple Process Queue With Forked Workers (CLI)
 
 ##Example
 
