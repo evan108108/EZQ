@@ -43,7 +43,7 @@ class EZQ
 	public function run($time_start=null, $all_pids = array())
 	{	
 		if(is_null($time_start))
-			$time_start = $this->microtime_float();
+			$time_start = $this->microtimeFloat();
 
 		$pids = array();
 
@@ -80,11 +80,11 @@ class EZQ
 		}
 		
 
-		$this->emit( 'q.complete', $this->read($all_pids, true), ( $this->microtime_float() - $time_start ) );
+		$this->emit( 'q.complete', $this->read($all_pids, true), ( $this->microtimeFloat() - $time_start ) );
 		return true;
 	}
 
-	protected function microtime_float()
+	protected function microtimeFloat()
 	{
 		list($usec, $sec) = explode(" ", microtime());
 		return ((float)$usec + (float)$sec);
