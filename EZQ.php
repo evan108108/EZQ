@@ -8,12 +8,31 @@ class EZQ
 	public $max_number_of_workers = 4;
 	public $time_start;
 	public $events = array();
+	public $parent_pid = null;
 
 
 	function __construct($max_number_of_workers=null)
 	{
 		if(!is_null($max_number_of_workers))
 			$this->max_number_of_workers = $max_number_of_workers;
+	}
+
+	function __destruct()
+	{
+		try {
+				$this->shutdown();
+		} catch (\Exception $exception) {
+				trigger_error($exception->getMessage(), E_USER_ERROR);
+		}
+	}
+
+	public function shutdown()
+	{
+		if ($this->parent_pid > 0) {
+			posix_kill($this->parent_pid, SIGKILL);
+		}	
+
+		$this->parent_pid = null;
 	}
 
 	public function addJob(Closure $job)
@@ -48,6 +67,8 @@ class EZQ
 		}
 
 		//This is the parent process
+		$this->parent_pid = getmypid();
+
 		for( $cnt = 0; $cnt < count($pids); $cnt++ ) {
 			$all_pids[] = $pids[$cnt];
 			pcntl_waitpid($pids[$cnt], $status, WUNTRACED);
@@ -98,7 +119,9 @@ class EZQ
 
 		foreach( $pids as $pid ) {
 			$results[] = unserialize( file_get_contents( $this->getMemoryLocation($pid) ) );
-			if($delete) unlink( $this->getMemoryLocation($pid) );
+			if($delete) {
+				$this->deleteMemory($pid);
+			}
 		}
 
 		return $results;
@@ -112,6 +135,11 @@ class EZQ
 	protected function getMemoryLocation($pid)
 	{
 		return sys_get_temp_dir() . '/' . self::MEMORY_PREFIX . "$pid.txt";
+	}
+
+	protected function deleteMemory($pid)
+	{
+		unlink( $this->getMemoryLocation($pid) );
 	}
 
 }
