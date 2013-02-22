@@ -18,22 +18,22 @@ class EZQ
 	}
 
 	function __destruct()
-	{
-		try {
-				$this->shutdown();
-		} catch (\Exception $exception) {
-				trigger_error($exception->getMessage(), E_USER_ERROR);
-		}
+    	{
+        	try {
+            		$this->shutdown();
+        	} catch (\Exception $exception) {
+            		trigger_error($exception->getMessage(), E_USER_ERROR);
+        	}
 	}
 
-	public function shutdown()
-	{
-		if ($this->parent_pid > 0) {
-			posix_kill($this->parent_pid, SIGKILL);
-		}	
+    	public function shutdown()
+    	{
+        	if (!is_null($this->parent_pid)) {
+            		posix_kill($this->parent_pid, SIGKILL);
+        	}
 
-		$this->parent_pid = null;
-	}
+        	$this->parent_pid = null;
+    	}
 
 	public function addJob(Closure $job)
 	{
@@ -67,8 +67,6 @@ class EZQ
 		}
 
 		//This is the parent process
-		$this->parent_pid = getmypid();
-
 		for( $cnt = 0; $cnt < count($pids); $cnt++ ) {
 			$all_pids[] = $pids[$cnt];
 			pcntl_waitpid($pids[$cnt], $status, WUNTRACED);
@@ -76,6 +74,7 @@ class EZQ
 		
 		if( count($this->jobs_queue) > 0 ) {
 			$this->run($time_start, $all_pids);
+			$this->parent_pid = getmypid();
 			return;
 		}
 		
