@@ -13,11 +13,13 @@ class EZQ
 
 	function __construct($max_number_of_workers=null)
 	{
-		if(!is_null($max_number_of_workers))
+        	if(!is_null($max_number_of_workers))
 			$this->max_number_of_workers = $max_number_of_workers;
-	}
 
-	function __destruct()
+		$this->parent_pid = getmypid();
+    	}
+
+    	function __destruct()
     	{
         	try {
             		$this->shutdown();
@@ -28,11 +30,10 @@ class EZQ
 
     	public function shutdown()
     	{
-        	if (!is_null($this->parent_pid)) {
+		if ( $this->parent_pid == getmypid() ) {
+			$this->parent_pid = null;
             		posix_kill($this->parent_pid, SIGKILL);
-        	}
-
-        	$this->parent_pid = null;
+      		}
     	}
 
 	public function addJob(Closure $job)
@@ -74,7 +75,6 @@ class EZQ
 		
 		if( count($this->jobs_queue) > 0 ) {
 			$this->run($time_start, $all_pids);
-			$this->parent_pid = getmypid();
 			return;
 		}
 		
